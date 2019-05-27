@@ -1,0 +1,17 @@
+FROM centos:latest
+MAINTAINER marko
+
+RUN yum install -y epel-release \
+    yum -y update
+
+RUN yum install -y \
+        ansible \
+        python-pip \
+        git \
+        wget \
+        unzip \
+        jq \
+        net-tools
+
+# Upgrade pip
+RUN pip install --upgrade pip
