@@ -1,0 +1,194 @@
+---
+- hosts: kafka-nodes
+  vars:
+    landing_zone: "/opt"
+
+    zookeeper_user: "zookeeper"
+    zookeeper_group: "zookeeper"
+    split_zookeeper_url: "{{ zookeeper_url.split('/') | lower }}"
+    zookeeper_archived_file: "{{ split_zookeeper_url[5] }}"
+    zookeeper_version: "{{ split_zookeeper_url[4] }}"
+    zookeeper_home: "{{ landing_zone }}/{{ zookeeper_version }}"
+
+    kafka_user: "kafka"
+    kafka_group: "kafka"
+    split_kafka_url: "{{ kafka_url.split('/') | lower }}"
+    kafka_archived_file: "{{ split_kafka_url[5] }}"
+    kafka_version: "{{ split_kafka_url[5].split('.tgz')[0] }}"
+    kafka_home: "{{ landing_zone }}/{{ kafka_version }}"
+
+  tasks:
+
+    - name: Install packages
+      yum:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - java-1.8.0-openjdk
+        - nc
+      become: yes
+
+    - name: "Create groups kafka and zookeeper"
+      group:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - "{{ zookeeper_group }}"
+        - "{{ kafka_group }}"
+      become: yes
+
+    - name: "Add user zookeeper with a bash shell and add to respective group"
+      user:
+        name: "{{ zookeeper_user }}"
+        shell: /bin/bash
+        group: "{{ zookeeper_group }}"
+      become: yes
+
+    - name: "Add user kafka with a bash shell and add to respective group"
+      user:
+        name: "{{ kafka_user }}"
+        shell: /bin/bash
+        group: "{{ kafka_group }}"
+      become: yes
+
+
+    - name: "Download Kafka and Zookeeper tars to {{ landing_zone }}"
+      get_url:
+        url: "{{ item }}"
+        dest: "{{ landing_zone }}"
+      with_items:
+        - "{{ zookeeper_url }}"
+        - "{{ kafka_url }}"
+      become: yes
+
+    - name: "Extract archives to {{ landing_zone }}"
+      unarchive:
+        src: "{{ landing_zone }}/{{ item }}"
+        dest: "{{ landing_zone }}"
+        remote_src: yes
+      with_items:
+        - "{{ zookeeper_archived_file }}"
+        - "{{ kafka_archived_file }}"
+      become: yes
+
+    - name: "Delete archives from {{ landing_zone }}"
+      file:
+        path: "{{ landing_zone }}/{{ item }}"
+        state: absent
+      with_items:
+        - "{{ zookeeper_archived_file }}"
+        - "{{ kafka_archived_file }}"
+      become: yes
+
+    - name: Create a Zookeeper directory data
+      file:
+        path: "{{ zookeeper_home }}/data"
+        state: directory
+        mode: '0755'
+      become: yes
+
+    - name: Change ownership of Zookeeper home
+      file:
+        path: "{{ landing_zone }}/{{ zookeeper_version }}"
+        owner: "{{ zookeeper_user }}"
+        group: "{{ zookeeper_group }}"
+        recurse: yes
+      become: yes
+
+    - name: Change ownership of Kafka home
+      file:
+        path: "{{ landing_zone }}/{{ kafka_version }}"
+        owner: "{{ kafka_user }}"
+        group: "{{ kafka_group }}"
+        recurse: yes
+      become: yes
+
+    - name: Copy zoo.cfg
+      copy:
+        src: "{{ local_workdir }}/zoo.cfg"
+        dest: "{{ zookeeper_home }}/conf/zoo.cfg"
+        owner: "{{ zookeeper_user }}"
+        group: "{{ zookeeper_group }}"
+      become: yes
+      become_user: zookeeper
+
+    - name: Create log directories
+      file:
+        path: "/var/log/{{ item }}"
+        state: directory
+        owner: "{{ item }}"
+        group: "{{ item }}"
+        mode: '0755'
+      with_items:
+        - "{{ zookeeper_user }}"
+        - "{{ kafka_user }}"
+      become: yes
+
+
+- hosts: localhost
+  vars:
+    landing_zone: "/opt"
+    zookeeper_version: "{{ zookeeper_url.split('/')[4] | lower }}"
+    zookeeper_home: "{{ landing_zone }}/{{ zookeeper_version }}"
+
+    kafka_version: "{{ kafka_url.split('/')[5].split('.tgz')[0] | lower }}"
+    kafka_home: "{{ landing_zone }}/{{ kafka_version }}"
+    z_conn: "zookeeper.connect={{ groups['kafka-nodes']|join(':2181,') }}"
+    zct: "zookeeper.connection.timeout.ms=6000"
+    id_rsa: "/home/centos/.ssh/id_rsa"
+
+  tasks:
+    - name: Create myid files
+      command: sh -c "echo '{{ index+1 }}' | ssh -i {{ id_rsa }} centos@{{ hostvars[item].ansible_host }} -T 'cat > /home/centos/myid && sudo mv /home/centos/myid {{ zookeeper_home }}/data && sudo chown zookeeper:zookeeper {{ zookeeper_home }}/data/myid'"
+      loop: "{{ groups['kafka-nodes'] }}"
+      loop_control:
+        index_var: index
+
+    - name: Create server.properties files
+      command: sh -c "printf 'broker.id={{ index }}\nlisteners=PLAINTEXT://{{ item }}:9092\nlog.dirs=/tmp/kafka-logs\n{{ z_conn }}\n{{ zct }}\n' | ssh -i {{ id_rsa }} centos@{{ hostvars[item].ansible_host }} -T  'cat > /home/centos/server.properties && sudo mv /home/centos/server.properties {{ kafka_home }}/config && sudo chown kafka:kafka {{ kafka_home }}/config'"
+      loop: "{{ groups['kafka-nodes'] }}"
+      loop_control:
+        index_var: index
+
+    - name: Generate /etc/ssh/ RSA host key pair
+      command : "ssh-keygen -q -t rsa -f /tmp/id_rsa -C '' -N ''"
+      args:
+        creates: /tmp/id_rsa
+
+- hosts: kafka-nodes
+  gather_facts: no
+  vars:
+    landing_zone: "/opt"
+    zookeeper_version: "{{ zookeeper_url.split('/')[4] | lower }}"
+    zookeeper_home: "{{ landing_zone }}/{{ zookeeper_version }}"
+
+    kafka_version: "{{ kafka_url.split('/')[5].split('.tgz')[0] | lower }}"
+    kafka_home: "{{ landing_zone }}/{{ kafka_version }}"
+
+  tasks:
+    - lineinfile:
+        path: /home/centos/.ssh/authorized_keys
+        insertafter: last
+        line: "{{lookup('file', '/tmp/id_rsa.pub')}}"
+
+    - name: Copy private key to all servers
+      copy:
+        src: "/tmp/id_rsa"
+        dest: "/home/centos/.ssh/id_rsa"
+        owner: centos
+        group: centos
+        mode: '0600'
+
+    - name: "Start Zookeeper"
+      shell: "{{ zookeeper_home }}/bin/zkServer.sh start"
+      args:
+        chdir: "{{ zookeeper_home }}"
+      become: yes
+      become_user: zookeeper
+
+    - name: "Start Kafka"
+      command: sh -c "export KAFKA_JVM_PERFORMANCE_OPTS=\"-server -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:+ExplicitGCInvokesConcurrent -Djava.awt.headless=true -XX:ParallelGCThreads=2\" && nohup {{ kafka_home }}/bin/kafka-server-start.sh config/server.properties > /var/log/kafka/nohup.out &"
+      args:
+        chdir: "{{ kafka_home }}"
+      become: yes
+      become_user: kafka

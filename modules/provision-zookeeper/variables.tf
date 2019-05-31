@@ -45,4 +45,12 @@ data "consul_keys" "kafka" {
     name    = "instance_tag"
     path    = "${var.path_in_consul_kafka}/${var.cluster_type}/instance_tag"
   }
+  key {
+    name    = "zookeeper_url"
+    path    = "${var.path_in_consul_kafka}/${var.cluster_type}/zookeeper_url"
+  }
+  key {
+    name    = "kafka_url"
+    path    = "${var.path_in_consul_kafka}/${var.cluster_type}/kafka_url"
+  }
 }
