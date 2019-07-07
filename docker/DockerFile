@@ -1,0 +1,35 @@
+FROM centos:latest
+MAINTAINER marko
+
+RUN yum install -y epel-release \
+    yum -y update
+
+RUN curl https://bintray.com/sbt/rpm/rpm | tee /etc/yum.repos.d/bintray-sbt-rpm.repo
+
+RUN yum install -y \
+        python-pip \
+        wget \
+        java-1.8.0-openjdk \
+        sbt
+
+# Upgrade pip
+RUN pip install --upgrade pip
+
+RUN wget -P /opt http://apache.uib.no/kafka/2.2.0/kafka_2.12-2.2.0.tgz
+RUN tar -xvzf /opt/kafka_2.12-2.2.0.tgz -C /opt
+
+RUN wget -P /opt http://downloads.lightbend.com/scala/2.11.8/scala-2.11.8.rpm
+RUN yum install /opt/scala-2.11.8.rpm -y
+
+RUN echo "export JAVA_HOME=/usr/lib/jvm/jre-1.8.0-openjdk" >> /etc/profile
+RUN echo "export JRE_HOME=/usr/lib/jvm/jre" >> /etc/profile
+
+#RUN echo "/usr/bin/nohup /opt/kafka_2.12-2.2.0/bin/zookeeper-server-start.sh /opt/kafka_2.12-2.2.0/config/zookeeper.properties > /tmp/zookeeper.out &" > /opt/startall.sh
+#RUN echo "/usr/bin/nohup /opt/kafka_2.12-2.2.0/bin/kafka-server-start.sh /opt/kafka_2.12-2.2.0/config/server.properties > /tmp/kafka.out &" >> /opt/startall.sh
+#RUN echo "source /etc/profile" >> /opt/startall.sh
+
+# copy files to container
+COPY copy_files/startall.sh /opt
+COPY copy_files/server.properties /opt/kafka_2.12-2.2.0/config
+
+#ENTRYPOINT ["sh", "/opt/startall.sh"]
