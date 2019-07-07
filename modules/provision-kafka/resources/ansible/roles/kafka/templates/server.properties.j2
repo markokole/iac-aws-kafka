@@ -1,0 +1,12 @@
+broker.id={{ zookeeper_id }}
+log.dirs=/var/log/kafka/log
+zookeeper.connect=localhost:2181
+{% for server in groups["kafka_servers"] %}
+listeners=INTERNAL://{{ server }}:9092,EXTERNAL://{{ public_dns }}:9990
+advertised.listeners=INTERNAL://{{ server }}:9092,EXTERNAL://{{ public_dns }}:9990
+advertised.host.name={{ public_dns }}
+{% endfor %}
+zookeeper.connection.timeout.ms=6000
+advertised.port=9990
+listener.security.protocol.map=EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT
+inter.broker.listener.name=INTERNAL

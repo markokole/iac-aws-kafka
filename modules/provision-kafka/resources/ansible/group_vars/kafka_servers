@@ -1,0 +1,25 @@
+---
+java:
+  yum_package: "java-1.8.0-openjdk"
+  java_home: "/usr"
+
+zookeeper:
+  url: "http://apache.uib.no/zookeeper/zookeeper-3.4.14/zookeeper-3.4.14.tar.gz"
+  landing_zone: "/opt"
+  archived_file: "zookeeper-3.4.14.tar.gz"
+  zookeeper_home: "zookeeper-3.4.14"
+  log_path: "/var/log/zookeeper"
+
+kafka:
+  url: "http://apache.uib.no/kafka/2.2.0/kafka_2.12-2.2.0.tgz"
+  landing_zone: "/opt"
+  archived_file: "kafka_2.12-2.2.0.tgz"
+  kafka_home: "kafka_2.12-2.2.0"
+  log_path: "/var/log/kafka"
+
+  z_conn: "zookeeper.connect=localhost:2181"
+  zct: "zookeeper.connection.timeout.ms=6000"
+  id_rsa: "/home/centos/.ssh/id_rsa"
+  adv_port: "advertised.port=9990"
+  lspm: "listener.security.protocol.map=EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT"
+  ibln: "inter.broker.listener.name=INTERNAL"

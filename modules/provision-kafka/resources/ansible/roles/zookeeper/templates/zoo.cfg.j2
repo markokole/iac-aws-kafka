@@ -1,0 +1,8 @@
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataDir=/opt/zookeeper-3.4.14/data
+clientPort=2181
+{% for server in groups["kafka_servers"] %}
+server.{{ loop.index }}={{ server }}:2888:3888
+{% endfor %}

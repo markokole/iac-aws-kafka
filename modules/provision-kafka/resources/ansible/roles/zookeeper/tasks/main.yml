@@ -1,0 +1,77 @@
+- name: "Create group zookeeper"
+  group:
+    name: "zookeeper"
+    state: present
+
+- name: "Add user zookeeper" # with a bash shell and add to respective group"
+  user:
+    name: "zookeeper"
+    #shell: /bin/bash
+    group: "zookeeper"
+
+- name: "Check if Zookeeper tar exists"
+  stat: path={{ zookeeper.landing_zone }}/{{ zookeeper.archived_file }}
+  register: zookeeper_tar_exists
+
+- name: "Download Zookeeper tar to {{ zookeeper.landing_zone }}"
+  get_url:
+    url: "{{ zookeeper.url }}"
+    dest: "{{ zookeeper.landing_zone }}"
+  when: not zookeeper_tar_exists.stat.exists
+
+- name: "Extract Zookeeper tar to {{ zookeeper.landing_zone }}"
+  unarchive:
+    src: "{{ zookeeper.landing_zone }}/{{ zookeeper.archived_file }}"
+    dest: "{{ zookeeper.landing_zone }}"
+    remote_src: yes
+    owner: zookeeper
+    group: zookeeper
+
+- name: "Delete Zookeeper tar from {{ zookeeper.landing_zone }}"
+  file:
+    path: "{{ zookeeper.landing_zone }}/{{ zookeeper.archived_file }}"
+    state: absent
+
+- name: Create Zookeeper data directory
+  file:
+    path: "{{ zookeeper.landing_zone }}/{{ zookeeper.zookeeper_home }}/data"
+    state: directory
+    mode: '0755'
+    owner: zookeeper
+    group: zookeeper
+
+- name: Create zoo.cfg
+  template:
+    src: "templates/zoo.cfg.j2"
+    dest: "{{ zookeeper.landing_zone }}/{{ zookeeper.zookeeper_home }}/conf/zoo.cfg"
+    force: yes
+  notify: restart zookeeper
+
+- name: Create Zookeeper log directory
+  file:
+    path: "{{ zookeeper.log_path }}"
+    state: directory
+    mode: "0755"
+    owner: zookeeper
+    group: zookeeper
+
+- name: Create myid files
+  template:
+    src: "templates/zookeeper.myid.j2"
+    dest: "{{ zookeeper.landing_zone }}/{{ zookeeper.zookeeper_home }}/data/myid"
+    force: yes
+    owner: zookeeper
+    group: zookeeper
+
+- name: start zookeeper
+  template:
+    src: "templates/zookeeper.service.j2"
+    dest: "/etc/systemd/system/zookeeper.service"
+    owner: zookeeper
+    group: zookeeper
+    mode: 644
+    force: yes
+
+- name: "reload systemd daemon"
+  shell: "systemctl daemon-reload"
+  notify: restart zookeeper

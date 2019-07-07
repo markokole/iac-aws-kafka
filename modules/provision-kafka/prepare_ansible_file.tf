@@ -2,7 +2,7 @@ data "template_file" "generate_inventory" {
   count = "${local.no_nodes}"
   template = "${file("${path.module}/resources/templates/inventory.tmpl")}"
   vars {
-    node_text = "${element(local.kafka_name, count.index)} ansible_host=${element(local.kafka_host, count.index)} ansible_user=centos ansible_ssh_private_key_file=\"/home/centos/.ssh/id_rsa\""
+    node_text = "${element(local.kafka_name, count.index)} ansible_host=${element(local.kafka_host, count.index)} public_dns=${element(local.kafka_public_dns, count.index)} zookeeper_id=${count.index+1} ansible_user=centos ansible_ssh_private_key_file=\"/home/centos/.ssh/id_rsa\""
     #public_ips = "${element(local.kafka_host, count.index)}"
     #private_dns = "${element(local.kafka_name, count.index)}"
   }

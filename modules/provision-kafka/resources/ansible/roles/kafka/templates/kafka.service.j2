@@ -1,0 +1,13 @@
+[Unit]
+Description=Kafka
+Before=
+After=network.target
+
+[Service]
+User=kafka
+Environment=JAVA_HOME={{ java.java_home }} CHDIR={{ kafka.landing_zone }} LOG_DIR={{ kafka.log_path }}/log
+ExecStart={{ kafka.landing_zone }}/{{ kafka.kafka_home }}/bin/kafka-server-start.sh {{ kafka.landing_zone }}/{{ kafka.kafka_home }}/config/server.properties
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
