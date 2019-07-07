@@ -12,6 +12,7 @@ locals {
   vpc_id               = "${data.consul_keys.aws.var.vpc_id}"
   subnet_id            = "${data.consul_keys.aws.var.subnet_id}"
   availability_zone    = "${data.consul_keys.aws.var.availability_zone}"
+  key_pair             = "${data.consul_keys.aws.var.key_pair}"
 
   #kafka
   ami                  = "${data.consul_keys.kafka.var.ami}"
@@ -32,9 +33,10 @@ resource "aws_instance" "kafka_cluster" {
   ami = "${local.ami}"
   instance_type = "${local.instance_type}"
   subnet_id = "${local.subnet_id}"
-  security_groups = ["${local.security_groups}"]
+  #security_groups = ["${local.security_groups}"]
+  vpc_security_group_ids = ["${local.security_groups}"]
   availability_zone = "${local.availability_zone}"
-  key_name = "mykeypair"
+  key_name = "${local.key_pair}"
   associate_public_ip_address = "true"
   tags {
     Name = "kafka-${local.instance_tag}-${format("%02d", count.index + 1)}"
