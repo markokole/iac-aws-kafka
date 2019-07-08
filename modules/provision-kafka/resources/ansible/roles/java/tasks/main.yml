@@ -5,3 +5,23 @@
     packages:
     - "{{ java.yum_package }}"
     - nc
+
+- name: Generate /etc/ssh/ RSA host key pair
+  connection: local
+  command : "ssh-keygen -q -t rsa -f /tmp/id_rsa -C '' -N ''"
+  args:
+    creates: /tmp/id_rsa
+
+- name: Append to authorized_keys
+  lineinfile:
+    path: /home/centos/.ssh/authorized_keys
+    insertafter: last
+    line: "{{lookup('file', '/tmp/id_rsa.pub')}}"
+
+- name: Copy private key to all servers
+  copy:
+    src: "/tmp/id_rsa"
+    dest: "/home/centos/.ssh/id_rsa"
+    owner: centos
+    group: centos
+    mode: '0600'
