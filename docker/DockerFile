@@ -28,12 +28,19 @@ RUN echo "export JRE_HOME=/usr/lib/jvm/jre" >> /etc/profile
 #RUN echo "/usr/bin/nohup /opt/kafka_2.12-2.2.0/bin/kafka-server-start.sh /opt/kafka_2.12-2.2.0/config/server.properties > /tmp/kafka.out &" >> /opt/startall.sh
 #RUN echo "source /etc/profile" >> /opt/startall.sh
 
+RUN wget https://repo1.maven.org/maven2/com/microsoft/azure/azure-eventhubs/2.3.2/azure-eventhubs-2.3.2.jar -P /opt
+RUN wget https://repo1.maven.org/maven2/com/google/code/gson/gson/2.8.5/gson-2.8.5.jar -P /opt
+RUN wget https://repo1.maven.org/maven2/org/apache/qpid/proton-j/0.33.1/proton-j-0.33.1.jar -P /opt
+
 RUN ln -s /opt/kafka_2.12-2.2.0/libs/kafka-clients-2.2.0.jar /usr/share/scala/lib
 RUN ln -s /opt/kafka_2.12-2.2.0/libs/kafka-streams-scala_2.12-2.2.0.jar /usr/share/scala/lib
 RUN ln -s /opt/kafka_2.12-2.2.0/libs/kafka_2.12-2.2.0 /usr/share/scala/lib
 RUN ln -s /opt/kafka_2.12-2.2.0/libs/kafka-streams-2.2.0.jar /usr/share/scala/lib
 RUN ln -s /opt/kafka_2.12-2.2.0/libs/slf4j-api-1.7.25.jar /usr/share/scala/lib
 RUN ln -s /opt/kafka_2.12-2.2.0/libs/log4j-1.2.17.jar /usr/share/scala/lib
+RUN ln -s /opt/azure-eventhubs-2.3.2.jar /usr/share/scala/lib
+RUN ln -s /opt/gson-2.8.5.jar /usr/share/scala/lib
+RUN ls -s proton-j-0.33.1.jar /usr/share/scala/lib
 
 # copy files to container
 COPY copy_files/startall.sh /opt

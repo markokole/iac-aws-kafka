@@ -6,7 +6,9 @@ After=network.target
 [Service]
 Type=forking
 User=zookeeper
-Environment=ZOO_LOG_DIR={{ zookeeper.log_path }} JAVA_HOME={{ java.java_home }} CHDIR={{ zookeeper.landing_zone }}/{{ zookeeper.zookeeper_home }}/data }}
+Environment=ZOO_LOG_DIR={{ zookeeper.log_path }} 
+Environment=JAVA_HOME={{ java.java_home }} 
+Environment=CHDIR={{ zookeeper.landing_zone }}/{{ zookeeper.zookeeper_home }}/data
 ExecStart={{ zookeeper.landing_zone }}/{{ zookeeper.zookeeper_home }}/bin/zkServer.sh start
 Restart=on-abort
 
