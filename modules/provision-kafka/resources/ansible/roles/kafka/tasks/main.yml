@@ -42,8 +42,7 @@
 
 - name: Create server.properties files
   connection: local
-  #command: sh -c "printf 'broker.id={{ index }}\nlisteners=INTERNAL://{{ item }}:9092,EXTERNAL://{{ hostvars[item].public_dns }}:9990\nlog.dirs=/tmp/kafka-logs\n{{ kafka.z_conn }}\n{{ kafka.zct }}\nadvertised.listeners=INTERNAL://{{ item }}:9092,EXTERNAL://{{ hostvars[item].public_dns }}:9990\nadvertised.host.name={{ hostvars[item].public_dns }}\n{{ kafka.adv_port }}\n{{ kafka.lspm }}\n{{ kafka.ibln }}' | ssh -i {{ kafka.id_rsa }} centos@{{ hostvars[item].ansible_host }} -T  'cat > /home/centos/server.properties && sudo mv /home/centos/server.properties {{ kafka.landing_zone }}/{{ kafka.kafka_home }}/config && sudo chown kafka:kafka {{ kafka.landing_zone }}/{{ kafka.kafka_home }}/config/server.properties'"
-  command: sh -c "printf 'broker.id={{ index }}\nlisteners=INTERNAL://{{ item }}:9092,EXTERNAL://{{ hostvars[item].public_dns }}:9990\nlog.dirs=/tmp/kafka-logs\n{{ kafka.z_conn }}\n{{ kafka.zct }}\nadvertised.listeners=INTERNAL://{{ item }}:9092,EXTERNAL://{{ hostvars[item].public_dns }}:9990\nadvertised.host.name={{ hostvars[item].public_dns }}\n{{ kafka.adv_port }}\n{{ kafka.lspm }}\n{{ kafka.ibln }}' | ssh -i {{ kafka.id_rsa }} centos@{{ hostvars[item].ansible_host }} -T  'cat > /home/centos/server.properties'"
+  command: sh -c "printf 'broker.id={{ index }}\nlisteners=INTERNAL://{{ item }}:9092,EXTERNAL://{{ hostvars[item].public_dns }}:9990\nlog.dirs=/tmp/kafka-logs\n{{ kafka.z_conn }}\n{{ kafka.zct }}\nadvertised.listeners=INTERNAL://{{ item }}:9092,EXTERNAL://{{ hostvars[item].public_dns }}:9990\nadvertised.host.name={{ hostvars[item].public_dns }}\n{{ kafka.adv_port }}\n{{ kafka.lspm }}\n{{ kafka.ibln }}\n{{ kafka.otrf }}' | ssh -i {{ kafka.id_rsa }} centos@{{ hostvars[item].ansible_host }} -T  'cat > /home/centos/server.properties'"
   loop: "{{ groups['kafka_servers'] }}"
   loop_control:
     index_var: index

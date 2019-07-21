@@ -23,3 +23,4 @@ kafka:
   adv_port: "advertised.port=9990"
   lspm: "listener.security.protocol.map=EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT"
   ibln: "inter.broker.listener.name=INTERNAL"
+  otrf: "offsets.topic.replication.factor=1"
