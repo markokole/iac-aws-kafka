@@ -40,7 +40,7 @@ RUN ln -s /opt/kafka_2.12-2.2.0/libs/slf4j-api-1.7.25.jar /usr/share/scala/lib
 RUN ln -s /opt/kafka_2.12-2.2.0/libs/log4j-1.2.17.jar /usr/share/scala/lib
 RUN ln -s /opt/azure-eventhubs-2.3.2.jar /usr/share/scala/lib
 RUN ln -s /opt/gson-2.8.5.jar /usr/share/scala/lib
-RUN ls -s proton-j-0.33.1.jar /usr/share/scala/lib
+RUN ln -s /opt/proton-j-0.33.1.jar /usr/share/scala/lib
 
 # copy files to container
 COPY copy_files/startall.sh /opt
