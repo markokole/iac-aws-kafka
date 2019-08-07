@@ -1,5 +1,5 @@
 FROM centos:latest
-MAINTAINER marko
+LABEL maintainer marko
 
 RUN yum install -y epel-release \
     yum -y update
@@ -10,7 +10,10 @@ RUN yum install -y \
         python-pip \
         wget \
         java-1.8.0-openjdk \
-        sbt
+        sbt \
+        sudo \
+        telnet \
+        net-tools
 
 # Upgrade pip
 RUN pip install --upgrade pip
