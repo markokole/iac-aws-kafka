@@ -16,4 +16,5 @@ override.tf.json
 *.retry
 output
 test
-examples/
+DefinitiveGuide
+HelloWorld
