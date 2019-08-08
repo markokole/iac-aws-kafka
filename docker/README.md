@@ -8,4 +8,6 @@ docker run -itd --rm --name kafka --hostname kafka -v C:\marko\GitHub\iac-aws-ka
 docker exec -it kafka bash
 ```
 
-Inside the *kafka* container is a zookeeper service running and on top of it the kafka service. This container can now be used for test and development locally before going into the *modules* folder where the code to provision a kafka cluster on AWS is located.
+Inside the *kafka* container, zookeeper and kafka are installed and can be started by executing the /opt/startall.sh script. Scala is also installed in case user wishes to test Scala programs against Kafka cluster in the cloud and requires a client.
+
+This container can be used for test and development locally before running the Kafka provisioning code in the modules folder.
